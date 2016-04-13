@@ -6,14 +6,15 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>TableSaw Sortable Table</title>
 
-	<link rel="stylesheet" href="../dist/tablesaw.css">
-	<link rel="stylesheet" href="demo.css">
-	<link rel="stylesheet" href="/demo-head/demohead.css">
+	<link rel="stylesheet" href="../../dist/tablesaw.css">
+	<link rel="stylesheet" href="../demo.css">
+	<link rel="stylesheet" href="//filamentgroup.github.io/demo-head/demohead.css">
 
-	<!--[if lt IE 9]><script src="../dist/dependencies/respond.js"></script><![endif]-->
-	<script src="../dist/dependencies/jquery.js"></script>
-	<script src="../dist/tablesaw.js"></script>
-	<script src="/demo-head/loadfont.js"></script>
+	<!--[if lt IE 9]><script src="../../dist/dependencies/respond.js"></script><![endif]-->
+	<script src="../../dist/dependencies/jquery.js"></script>
+	<script src="../../dist/tablesaw.js"></script>
+	<script src="../../dist/tablesaw-init.js"></script>
+	<script src="//filamentgroup.github.io/demo-head/loadfont.js"></script>
 
 	<script>
 	$( document ).ready(function() {
@@ -66,14 +67,15 @@
 				<a href="stackonly.html">Stack Only</a>
 				<a href="swipe.html">Swipe Table</a>
 				<a href="toggle.html">Toggle</a>
+				<a href="bare.html">Bare</a>
 				</nav>
 			</div>
 		</div>
 		<h2>Swipe Table</h2>
 
-		<table class='tablesaw' data-mode='swipe' id='mytable'>
+		<table class='tablesaw' data-tablesaw-mode='swipe' id='mytable'>
 			<thead>
-				<tr><th data-priority='persist'>Name</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr>
+				<tr><th data-tablesaw-priority='persist'>Name</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>P5</th><th>P6</th></tr>
 			</thead>
 			<tbody id="place1">
 			</tbody>

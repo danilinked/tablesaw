@@ -9,28 +9,24 @@
 
 	var S = {
 		selectors: {
-			init: 'table[data-mode-switch]'
+			init: 'table[data-tablesaw-mode-switch]'
 		},
 		attributes: {
-			excludeMode: 'data-mode-exclude'
+			excludeMode: 'data-tablesaw-mode-exclude'
 		},
 		classes: {
 			main: 'tablesaw-modeswitch',
 			toolbar: 'tablesaw-toolbar'
 		},
 		modes: [ 'stack', 'swipe', 'columntoggle' ],
-		i18n: {
-			modes: [ 'Stack', 'Swipe', 'Toggle' ],
-			columns: 'Col<span class="a11y-sm">umn</span>s'
-		},
 		init: function( table ) {
 			var $table = $( table ),
 				ignoreMode = $table.attr( S.attributes.excludeMode ),
-				$toolbar = $table.prev( '.tablesaw-bar' ),
+				$toolbar = $table.prev().filter( '.tablesaw-bar' ),
 				modeVal = '',
 				$switcher = $( '<div>' ).addClass( S.classes.main + ' ' + S.classes.toolbar ).html(function() {
-					var html = [ '<label>' + S.i18n.columns + ':' ],
-						dataMode = $table.attr( 'data-mode' ),
+					var html = [ '<label>' + Tablesaw.i18n.columns + ':' ],
+						dataMode = $table.attr( 'data-tablesaw-mode' ),
 						isSelected;
 
 					html.push( '<span class="btn btn-small">&#160;<select>' );
@@ -47,7 +43,7 @@
 
 						html.push( '<option' +
 							( isSelected ? ' selected' : '' ) +
-							' value="' + S.modes[ j ] + '">' + S.i18n.modes[ j ] + '</option>' );
+							' value="' + S.modes[ j ] + '">' + Tablesaw.i18n.modes[ j ] + '</option>' );
 					}
 					html.push( '</select></span></label>' );
 
@@ -73,7 +69,7 @@
 			$switcher.remove();
 			$table.data( 'table' ).destroy();
 
-			$table.attr( 'data-mode', val );
+			$table.attr( 'data-tablesaw-mode', val );
 			$table.table();
 		}
 	};

@@ -1,9 +1,33 @@
+/*global Tablesaw:true */
+
 /*
 * tablesaw: A set of plugins for responsive tables
 * Stack and Column Toggle tables
 * Copyright (c) 2013 Filament Group, Inc.
 * MIT License
 */
+
+if( typeof Tablesaw === "undefined" ) {
+	Tablesaw = {
+		i18n: {
+			modes: [ 'Stack', 'Swipe', 'Toggle' ],
+			columns: 'Col<span class=\"a11y-sm\">umn</span>s',
+			columnBtnText: 'Columns',
+			columnsDialogError: 'No eligible columns.',
+			sort: 'Sort'
+		},
+		// cut the mustard
+		mustard: 'querySelector' in document &&
+			( !window.blackberry || window.WebKitPoint ) &&
+			!window.operamini
+	};
+}
+if( !Tablesaw.config ) {
+	Tablesaw.config = {};
+}
+if( Tablesaw.mustard ) {
+	jQuery( document.documentElement ).addClass( 'tablesaw-enhanced' );
+}
 
 ;(function( $ ) {
 	var pluginName = "table",
@@ -16,7 +40,7 @@
 			refresh: "tablesawrefresh"
 		},
 		defaultMode = "stack",
-		initSelector = "table[data-mode],table[data-sortable]";
+		initSelector = "table[data-tablesaw-mode],table[data-tablesaw-sortable]";
 
 	var Table = function( element ) {
 		if( !element ) {
@@ -26,7 +50,7 @@
 		this.table = element;
 		this.$table = $( element );
 
-		this.mode = this.$table.attr( "data-mode" ) || defaultMode;
+		this.mode = this.$table.attr( "data-tablesaw-mode" ) || defaultMode;
 
 		this.init();
 	};
@@ -66,7 +90,7 @@
 				}
 
 				// Store "cells" data on header as a reference to all cells in the same column as this TH
-				this.cells = self.$table.find("tr").not( $( thrs ).eq( 0 ) ).not( this ).children( sel );
+				this.cells = self.$table.find("tr").not( thrs[0] ).not( this ).children().filter( sel );
 				coltally++;
 			});
 		});
@@ -83,7 +107,7 @@
 	Table.prototype.createToolbar = function() {
 		// Insert the toolbar
 		// TODO move this into a separate component
-		var $toolbar = this.$table.prev( '.' + classes.toolbar );
+		var $toolbar = this.$table.prev().filter( '.' + classes.toolbar );
 		if( !$toolbar.length ) {
 			$toolbar = $( '<div>' )
 				.addClass( classes.toolbar )
@@ -98,7 +122,7 @@
 
 	Table.prototype.destroy = function() {
 		// Don’t remove the toolbar. Some of the table features are not yet destroy-friendly.
-		this.$table.prev( '.' + classes.toolbar ).each(function() {
+		this.$table.prev().filter( '.' + classes.toolbar ).each(function() {
 			this.className = this.className.replace( /\bmode\-\w*\b/gi, '' );
 		});
 
@@ -109,7 +133,7 @@
 		// other plugins
 		this.$table.trigger( events.destroy, [ this ] );
 
-		this.$table.removeAttr( 'data-mode' );
+		this.$table.removeAttr( 'data-tablesaw-mode' );
 
 		this.$table.removeData( pluginName );
 	};
@@ -129,7 +153,10 @@
 	};
 
 	$( document ).on( "enhance.tablesaw", function( e ) {
-		$( e.target ).find( initSelector )[ pluginName ]();
+		// Cut the mustard
+		if( Tablesaw.mustard ) {
+			$( e.target ).find( initSelector )[ pluginName ]();
+		}
 	});
 
 }( jQuery ));

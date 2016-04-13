@@ -1,6 +1,6 @@
 :root {
-	var-thead-background: #e2dfdc;
-	var-thead-background-to-gradient: #fff;
+	--thead-background: #e2dfdc;
+	--thead-background-to-gradient: #fff;
 }
 
 table.tablesaw tbody th {
@@ -30,8 +30,8 @@ table.tablesaw thead td {
 
 .tablesaw thead {
 	border: 1px solid #e5e5e4;
-	background: var(thead-background);
-	background-image: linear-gradient(to bottom, var(thead-background-to-gradient), var(thead-background));
+	background: var(--thead-background);
+	background-image: linear-gradient(to bottom, var(--thead-background-to-gradient), var(--thead-background));
 }
 .tablesaw thead th {
 	font-weight: 100;
@@ -52,10 +52,18 @@ table.tablesaw thead td {
 }
 
 .tablesaw caption {
-	text-align:left;
-	margin-bottom:1.4em;
+	text-align: left;
+	margin-bottom: 0;
 	opacity: .5;
 	filter: alpha(opacity=50);
+	line-height: 2.4;
+}
+
+@media (min-width: 25em) {
+	.tablesaw caption {
+		margin-bottom: .6em;
+		line-height: 1.2;
+	}
 }
 
 /* Stack */
@@ -75,5 +83,14 @@ table.tablesaw thead td {
 @media (min-width: 40em) {
 	.tablesaw td {
 		line-height: 2em;
+	}
+}
+
+@media only all {
+	.tablesaw-swipe .tablesaw-cell-persist {
+		border-right: 1px solid #e4e1de;
+	}
+	.tablesaw-swipe .tablesaw-cell-persist {
+		box-shadow: 3px 0 4px -1px #e4e1de;
 	}
 }

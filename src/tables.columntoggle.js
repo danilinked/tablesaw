@@ -21,11 +21,6 @@
 			toolbar: 'tablesaw-bar'
 		};
 
-		this.i18n = {
-			columnBtnText: 'Columns',
-			columnsDialogError: 'No eligible columns.'
-		};
-
 		// Expose headers and allHeaders properties on the widget
 		// headers references the THs within the first TR in the table
 		this.headers = this.$table.find( 'tr:first > th' );
@@ -49,15 +44,15 @@
 		id = tableId + "-popup";
 		$btnContain = $( "<div class='" + this.classes.columnBtnContain + "'></div>" );
 		$menuButton = $( "<a href='#" + id + "' class='btn btn-micro " + this.classes.columnBtn +"' data-popup-link>" +
-										"<span>" + this.i18n.columnBtnText + "</span></a>" );
+										"<span>" + Tablesaw.i18n.columnBtnText + "</span></a>" );
 		$popup = $( "<div class='dialog-table-coltoggle " + this.classes.popup + "' id='" + id + "'></div>" );
 		$menu = $( "<div class='btn-group'></div>" );
 
 		var hasNonPersistentHeaders = false;
 		$( this.headers ).not( "td" ).each( function() {
 			var $this = $( this ),
-				priority = $this.attr("data-priority"),
-				$cells = $this.add( this.cells );
+				priority = $this.attr("data-tablesaw-priority"),
+				$cells = self.$getCells( this );
 
 			if( priority && priority !== "persist" ) {
 				$cells.addClass( self.classes.priorityPrefix + priority );
@@ -65,14 +60,14 @@
 				$("<label><input type='checkbox' checked>" + $this.text() + "</label>" )
 					.appendTo( $menu )
 					.children( 0 )
-					.data( "cells", $cells );
+					.data( "tablesaw-header", this );
 
 				hasNonPersistentHeaders = true;
 			}
 		});
 
 		if( !hasNonPersistentHeaders ) {
-			$menu.append( '<label>' + this.i18n.columnsDialogError + '</label>' );
+			$menu.append( '<label>' + Tablesaw.i18n.columnsDialogError + '</label>' );
 		}
 
 		$menu.appendTo( $popup );
@@ -81,7 +76,7 @@
 		$menu.find( 'input[type="checkbox"]' ).on( "change", function(e) {
 			var checked = e.target.checked;
 
-			$( e.target ).data( "cells" )
+			self.$getCellsFromCheckbox( e.target )
 				.toggleClass( "tablesaw-cell-hidden", !checked )
 				.toggleClass( "tablesaw-cell-visible", checked );
 
@@ -89,7 +84,7 @@
 		});
 
 		$menuButton.appendTo( $btnContain );
-		$btnContain.appendTo( this.$table.prev( '.' + this.classes.toolbar ) );
+		$btnContain.appendTo( this.$table.prev().filter( '.' + this.classes.toolbar ) );
 
 		var closeTimeout;
 		function openPopup() {
@@ -136,11 +131,19 @@
 		this.refreshToggle();
 	};
 
-	ColumnToggle.prototype.refreshToggle = function() {
-		this.$menu.find( "input" ).each( function() {
-			var $this = $( this );
+	ColumnToggle.prototype.$getCells = function( th ) {
+		return $( th ).add( th.cells );
+	};
 
-			this.checked = $this.data( "cells" ).eq( 0 ).css( "display" ) === "table-cell";
+	ColumnToggle.prototype.$getCellsFromCheckbox = function( checkbox ) {
+		var th = $( checkbox ).data( "tablesaw-header" );
+		return this.$getCells( th );
+	};
+
+	ColumnToggle.prototype.refreshToggle = function() {
+		var self = this;
+		this.$menu.find( "input" ).each( function() {
+			this.checked = self.$getCellsFromCheckbox( this ).eq( 0 ).css( "display" ) === "table-cell";
 		});
 	};
 
@@ -148,16 +151,11 @@
 		var self = this;
 		$(this.headers).not( "td" ).each( function() {
 			var $this = $( this ),
-				priority = $this.attr("data-priority"),
+				priority = $this.attr("data-tablesaw-priority"),
 				$cells = $this.add( this.cells );
 
 			if( priority && priority !== "persist" ) {
 				$cells.addClass( self.classes.priorityPrefix + priority );
-			} else {
-				$cells.each(function() {
-					// remove all priority classes.
-					this.className = this.className.replace( /\bui\-table\-priority\-\d\b/g, '' );
-				});
 			}
 		});
 	};

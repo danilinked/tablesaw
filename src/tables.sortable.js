@@ -18,20 +18,20 @@
 			}).join( '' );
 	}
 
-	var topLevelPluginName = "tablesaw-sortable",
-		pluginName = "sortable",
+	var pluginName = "tablesaw-sortable",
 		initSelector = "table[data-" + pluginName + "]",
 		sortableSwitchSelector = "[data-" + pluginName + "-switch]",
+		attrs = {
+			defaultCol: "data-tablesaw-sortable-default-col",
+			numericCol: "data-tablesaw-sortable-numeric"
+		},
 		classes = {
 			head: pluginName + "-head",
 			ascend: pluginName + "-ascending",
 			descend: pluginName + "-descending",
-			switcher: topLevelPluginName + "-switch",
+			switcher: pluginName + "-switch",
 			tableToolbar: 'tablesaw-toolbar',
-			sortButton: topLevelPluginName + "-btn"
-		},
-		i18n = {
-			sort: 'Sort'
+			sortButton: pluginName + "-btn"
 		},
 		methods = {
 			_create: function( o ){
@@ -53,7 +53,7 @@
 					$switcher;
 
 				var addClassToTable = function(){
-						el.addClass( topLevelPluginName );
+						el.addClass( pluginName );
 					},
 					addClassToHeads = function( h ){
 						$.each( h , function( i , v ){
@@ -70,7 +70,7 @@
 					clearOthers = function( sibs ){
 						$.each( sibs , function( i , v ){
 							var col = $( v );
-							col.removeAttr( "data-sortable-default-col" );
+							col.removeAttr( attrs.defaultCol );
 							col.removeClass( classes.ascend );
 							col.removeClass( classes.descend );
 						});
@@ -102,7 +102,7 @@
 					handleDefault = function( heads ){
 						$.each( heads , function( idx , el ){
 							var $el = $( el );
-							if( $el.is( "[data-sortable-default-col]" ) ){
+							if( $el.is( "[" + attrs.defaultCol + "]" ) ){
 								if( !$el.hasClass( classes.descend ) ) {
 									$el.addClass( classes.ascend );
 								}
@@ -111,32 +111,38 @@
 					},
 					addSwitcher = function( heads ){
 						$switcher = $( '<div>' ).addClass( classes.switcher ).addClass( classes.tableToolbar ).html(function() {
-							var html = [ '<label>' + i18n.sort + ':' ];
+							var html = [ '<label>' + Tablesaw.i18n.sort + ':' ];
 
 							html.push( '<span class="btn btn-small">&#160;<select>' );
 							heads.each(function( j ) {
-								var $t = $( this ),
-									isDefaultCol = $t.is( '[data-sortable-default-col]' ),
-									isDescending = $t.hasClass( classes.descend ),
-									isNumeric = false;
+								var $t = $( this );
+								var isDefaultCol = $t.is( "[" + attrs.defaultCol + "]" );
+								var isDescending = $t.hasClass( classes.descend );
 
-								// Check only the first three rows to see if the column is numbers.
-								$( this.cells ).slice( 0, 3 ).each(function() {
+								var hasNumericAttribute = $t.is( '[data-sortable-numeric]' );
+								var numericCount = 0;
+								// Check only the first four rows to see if the column is numbers.
+								var numericCountMax = 5;
+
+								$( this.cells ).slice( 0, numericCountMax ).each(function() {
 									if( !isNaN( parseInt( getSortValue( this ), 10 ) ) ) {
-										isNumeric = true;
-										return false;
+										numericCount++;
 									}
 								});
+								var isNumeric = numericCount === numericCountMax;
+								if( !hasNumericAttribute ) {
+									$t.attr( "data-sortable-numeric", isNumeric ? "" : "false" );
+								}
 
-								html.push( '<option' + ( isDefaultCol && !isDescending ? ' selected' : '' ) + ' value="' + j + '_asc">' + $t.text() + ' ' + ( isNumeric ? '↑' : '(A-Z)' ) + '</option>' );
-								html.push( '<option' + ( isDefaultCol && isDescending ? ' selected' : '' ) + ' value="' + j + '_desc">' + $t.text() + ' ' + ( isNumeric ? '↓' : '(Z-A)' ) + '</option>' );
+								html.push( '<option' + ( isDefaultCol && !isDescending ? ' selected' : '' ) + ' value="' + j + '_asc">' + $t.text() + ' ' + ( isNumeric ? '&#x2191;' : '(A-Z)' ) + '</option>' );
+								html.push( '<option' + ( isDefaultCol && isDescending ? ' selected' : '' ) + ' value="' + j + '_desc">' + $t.text() + ' ' + ( isNumeric ? '&#x2193;' : '(Z-A)' ) + '</option>' );
 							});
 							html.push( '</select></span></label>' );
 
 							return html.join('');
 						});
 
-						var $toolbar = el.prev( '.tablesaw-bar' ),
+						var $toolbar = el.prev().filter( '.tablesaw-bar' ),
 							$firstChild = $toolbar.children().eq( 0 );
 
 						if( $firstChild.length ) {
@@ -150,7 +156,7 @@
 								head = heads.eq( val[ 0 ] );
 
 							clearOthers( head.siblings() );
-							el.sortable( 'sortBy', head.get( 0 ), val[ 1 ] === 'asc' );
+							el[ pluginName ]( 'sortBy', head.get( 0 ), val[ 1 ] === 'asc' );
 						});
 					};
 
@@ -175,8 +181,10 @@
 				var getCells = function( rows ){
 						var cells = [];
 						$.each( rows , function( i , r ){
+							var element = $( r ).children().get( colNum );
 							cells.push({
-								cell: getSortValue( $( r ).children().get( colNum ) ),
+								element: element,
+								cell: getSortValue( element ),
 								rowNum: i
 							});
 						});
@@ -184,10 +192,10 @@
 					},
 					getSortFxn = function( ascending, forceNumeric ){
 						var fn,
-							regex = /[^\d\.]/g;
+							regex = /[^\-\+\d\.]/g;
 						if( ascending ){
 							fn = function( a , b ){
-								if( forceNumeric || !isNaN( parseFloat( a.cell ) ) ) {
+								if( forceNumeric ) {
 									return parseFloat( a.cell.replace( regex, '' ) ) - parseFloat( b.cell.replace( regex, '' ) );
 								} else {
 									return a.cell.toLowerCase() > b.cell.toLowerCase() ? 1 : -1;
@@ -195,7 +203,7 @@
 							};
 						} else {
 							fn = function( a , b ){
-								if( forceNumeric || !isNaN( parseFloat( a.cell ) ) ) {
+								if( forceNumeric ) {
 									return parseFloat( b.cell.replace( regex, '' ) ) - parseFloat( a.cell.replace( regex, '' ) );
 								} else {
 									return a.cell.toLowerCase() < b.cell.toLowerCase() ? 1 : -1;
@@ -214,7 +222,9 @@
 					};
 
 				cells = getCells( rows );
-				fn = getSortFxn( ascending, $( col ).is( '[data-sortable-numeric]' ) );
+				var customFn = $( col ).data( 'tablesaw-sort' );
+				fn = ( customFn && typeof customFn === "function" ? customFn( ascending ) : false ) ||
+					getSortFxn( ascending, $( col ).is( '[data-sortable-numeric]' ) && !$( col ).is( '[data-sortable-numeric="false"]' ) );
 				sorted = cells.sort( fn );
 				rows = applyToRows( sorted , rows );
 				return rows;
@@ -226,7 +236,7 @@
 			},
 			makeColDefault: function( col , a ){
 				var c = $( col );
-				c.attr( "data-sortable-default-col" , "true" );
+				c.attr( attrs.defaultCol , "true" );
 				if( a ){
 					c.removeClass( classes.descend );
 					c.addClass( classes.ascend );

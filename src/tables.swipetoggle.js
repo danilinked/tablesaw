@@ -7,6 +7,21 @@
 
 ;(function( win, $, undefined ){
 
+	$.extend( Tablesaw.config, {
+		swipe: {
+			horizontalThreshold: 15,
+			verticalThreshold: 30
+		}
+	});
+
+	function isIE8() {
+		var div = document.createElement('div'),
+			all = div.getElementsByTagName('i');
+
+		div.innerHTML = '<!--[if lte IE 8]><i></i><![endif]-->';
+
+		return !!all.length;
+	}
 
 	function createSwipeTable( $table ){
 
@@ -16,12 +31,12 @@
 			hideBtn = 'disabled',
 			persistWidths = 'tablesaw-fix-persist',
 			$headerCells = $table.find( "thead th" ),
-			$headerCellsNoPersist = $headerCells.not( '[data-priority="persist"]' ),
+			$headerCellsNoPersist = $headerCells.not( '[data-tablesaw-priority="persist"]' ),
 			headerWidths = [],
 			$head = $( document.head || 'head' ),
 			tableId = $table.attr( 'id' ),
 			// TODO switch this to an nth-child feature test
-			isIE8 = $( 'html' ).is( '.ie-lte8' );
+			supportsNthChild = !isIE8();
 
 		if( !$headerCells.length ) {
 			throw new Error( "tablesaw swipe: no header cells found. Are you using <th> inside of <thead>?" );
@@ -34,7 +49,7 @@
 		});
 		$table.css( 'width', '' );
 
-		$btns.appendTo( $table.prev( '.tablesaw-bar' ) );
+		$btns.appendTo( $table.prev().filter( '.tablesaw-bar' ) );
 
 		$table.addClass( "tablesaw-swipe" );
 
@@ -60,7 +75,7 @@
 		}
 
 		function isPersistent( headerCell ) {
-			return $( headerCell ).is( '[data-priority="persist"]' );
+			return $( headerCell ).is( '[data-tablesaw-priority="persist"]' );
 		}
 
 		function unmaintainWidths() {
@@ -69,9 +84,11 @@
 		}
 
 		function maintainWidths() {
-			var prefix = '#' + tableId + ' ',
+			var prefix = '#' + tableId + '.tablesaw-swipe ',
 				styles = [],
-				tableWidth = $table.width();
+				tableWidth = $table.width(),
+				hash = [],
+				newHash;
 
 			$headerCells.each(function( index ) {
 				var width;
@@ -80,14 +97,28 @@
 
 					// Only save width on non-greedy columns (take up less than 75% of table width)
 					if( width < tableWidth * 0.75 ) {
+						hash.push( index + '-' + width );
 						styles.push( prefix + ' .tablesaw-cell-persist:nth-child(' + ( index + 1 ) + ') { width: ' + width + 'px; }' );
 					}
 				}
 			});
+			newHash = hash.join( '_' );
 
-			unmaintainWidths();
 			$table.addClass( persistWidths );
-			$head.append( $( '<style>' + styles.join( "\n" ) + '</style>' ).attr( 'id', tableId + '-persist' ) );
+
+			var $style = $( '#' + tableId + '-persist' );
+			// If style element not yet added OR if the widths have changed
+			if( !$style.length || $style.data( 'hash' ) !== newHash ) {
+				// Remove existing
+				$style.remove();
+
+				if( styles.length ) {
+					$( '<style>' + styles.join( "\n" ) + '</style>' )
+						.attr( 'id', tableId + '-persist' )
+						.data( 'hash', newHash )
+						.appendTo( $head );
+				}
+			}
 		}
 
 		function getNext(){
@@ -124,7 +155,16 @@
 			return pair[ 1 ] > -1 && pair[ 1 ] < $headerCellsNoPersist.length;
 		}
 
+		function matchesMedia() {
+			var matchMedia = $table.attr( "data-tablesaw-swipe-media" );
+			return !matchMedia || ( "matchMedia" in win ) && win.matchMedia( matchMedia ).matches;
+		}
+
 		function fakeBreakpoints() {
+			if( !matchesMedia() ) {
+				return;
+			}
+
 			var extraPaddingPixels = 20,
 				containerWidth = $table.parent().width(),
 				persist = [],
@@ -134,7 +174,7 @@
 
 			$headerCells.each(function( index ) {
 				var $t = $( this ),
-					isPersist = $t.is( '[data-priority="persist"]' );
+					isPersist = $t.is( '[data-tablesaw-priority="persist"]' );
 
 				persist.push( isPersist );
 
@@ -165,7 +205,7 @@
 				}
 			});
 
-			if( !isIE8 ) {
+			if( supportsNthChild ) {
 				unmaintainWidths();
 			}
 			$table.trigger( 'tablesawcolumns' );
@@ -183,7 +223,7 @@
 					}
 				}
 
-				if( !isIE8 ) {
+				if( supportsNthChild ) {
 					maintainWidths();
 				}
 
@@ -199,30 +239,42 @@
 			e.preventDefault();
 		});
 
+		function getCoord( event, key ) {
+			return ( event.touches || event.originalEvent.touches )[ 0 ][ key ];
+		}
+
 		$table
 			.bind( "touchstart.swipetoggle", function( e ){
-				var originX = ( e.touches || e.originalEvent.touches )[ 0 ].pageX,
-					originY = ( e.touches || e.originalEvent.touches )[ 0 ].pageY,
+				var originX = getCoord( e, 'pageX' ),
+					originY = getCoord( e, 'pageY' ),
 					x,
 					y;
 
+				$( win ).off( "resize", fakeBreakpoints );
+
 				$( this )
 					.bind( "touchmove", function( e ){
-						x = ( e.touches || e.originalEvent.touches )[ 0 ].pageX;
-						y = ( e.touches || e.originalEvent.touches )[ 0 ].pageY;
-
-						if( Math.abs( x - originX ) > 15 && Math.abs( y - originY ) < 20 ) {
+						x = getCoord( e, 'pageX' );
+						y = getCoord( e, 'pageY' );
+						var cfg = Tablesaw.config.swipe;
+						if( Math.abs( x - originX ) > cfg.horizontalThreshold && Math.abs( y - originY ) < cfg.verticalThreshold ) {
 							e.preventDefault();
 						}
 					})
 					.bind( "touchend.swipetoggle", function(){
-						if( x - originX < 15 ){
-							advance( true );
-						}
-						if( x - originX > -15 ){
-							advance( false );
+						var cfg = Tablesaw.config.swipe;
+						if( Math.abs( y - originY ) < cfg.verticalThreshold ) {
+							if( x - originX < -1 * cfg.horizontalThreshold ){
+								advance( true );
+							}
+							if( x - originX > cfg.horizontalThreshold ){
+								advance( false );
+							}
 						}
 
+						window.setTimeout(function() {
+							$( win ).on( "resize", fakeBreakpoints );
+						}, 300);
 						$( this ).unbind( "touchmove touchend" );
 					});
 
@@ -241,7 +293,7 @@
 				var $t = $( this );
 
 				$t.removeClass( 'tablesaw-swipe' );
-				$t.prev( '.tablesaw-bar' ).find( '.tablesaw-advance' ).remove();
+				$t.prev().filter( '.tablesaw-bar' ).find( '.tablesaw-advance' ).remove();
 				$( win ).off( "resize", fakeBreakpoints );
 
 				$t.unbind( ".swipetoggle" );

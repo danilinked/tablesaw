@@ -6,6 +6,9 @@
 	display: inline-block;
 }
 
+.tablesaw-columntoggle-btnwrap {
+	position: relative; /* for dialog positioning */
+}
 .tablesaw-columntoggle-btnwrap .dialog-content {
 	padding: .5em;
 }
@@ -114,16 +117,7 @@
 }
 
 @media only all {
-	.tablesaw-swipe .tablesaw-cell-persist {
-		border-right: 1px solid #e4e1de;
-	}
-	.tablesaw-swipe .tablesaw-cell-persist {
-		box-shadow: 3px 0 4px -1px #e4e1de;
-	}
-
 	/* Unchecked manually: Always hide */
-	.tablesaw-swipe th.tablesaw-cell-hidden,
-	.tablesaw-swipe td.tablesaw-cell-hidden,
 	.tablesaw-columntoggle th.tablesaw-cell-hidden,
 	.tablesaw-columntoggle td.tablesaw-cell-hidden {
 		display: none;

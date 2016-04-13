@@ -1,9 +1,6 @@
-/*
-* tablesaw: A set of plugins for responsive tables
-* Copyright (c) 2013 Filament Group, Inc.
-* MIT License
-*/
-
+/*! Tablesaw - v2.0.2 - 2015-10-28
+* https://github.com/filamentgroup/tablesaw
+* Copyright (c) 2015 Filament Group; Licensed  */
 ;(function( $ ) {
 
 	// DOM-ready auto-init of plugins.

@@ -4,11 +4,16 @@
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>TableSaw Column Toggle Table</title>
+	<title>TableSaw Sortable Table</title>
 
 	<link rel="stylesheet" href="../dist/tablesaw.css">
 	<link rel="stylesheet" href="demo.css">
 	<link rel="stylesheet" href="//filamentgroup.github.io/demo-head/demohead.css">
+	<style>
+	/*.tablesaw.tablesaw.tablesaw {
+		width: 50%;
+	}*/
+	</style>
 
 	<!--[if lt IE 9]><script src="../dist/dependencies/respond.js"></script><![endif]-->
 	<script src="../dist/dependencies/jquery.js"></script>
@@ -39,17 +44,16 @@
 			<a href="sort.html">Sortable</a>
 			<a href="stack.html">Stack</a>
 			<a href="stackonly.html">Stack Only</a>
-			<a href="swipe.html">Swipe Table</a>
-			<a href="toggle.html" class="current">Toggle</a>
+			<a href="swipe.html" class="current">Swipe Table</a>
+			<a href="toggle.html">Toggle</a>
 			<a href="bare.html">Bare</a>
 			</nav>
 		</div>
 	</div>
-	<div class="docs-main">
+	<div class="docs-main" style="width: 40%">
+		<h2>Swipe Table</h2>
 
-		<h2>Column Toggle Table</h2>
-		<p>The Column Toggle Table allows the user to select which columns they want to be visible.</p>
-		<table class="tablesaw" data-tablesaw-mode="columntoggle">
+		<table class="tablesaw" data-tablesaw-mode="swipe">
 			<thead>
 				<tr>
 					<th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="persist">Movie Title</th>
@@ -133,9 +137,9 @@
 			</tbody>
 		</table>
 
-		<h2>Column Toggle Table with Mini Map</h2>
+		<h3>Swipe Table with Mini Map</h3>
 
-		<table class="tablesaw" data-tablesaw-mode="columntoggle" data-tablesaw-minimap>
+		<table class="tablesaw" data-tablesaw-mode="swipe" data-tablesaw-minimap>
 			<thead>
 				<tr>
 					<th scope="col" data-tablesaw-sortable-col data-tablesaw-priority="persist">Movie Title</th>
@@ -219,6 +223,5 @@
 			</tbody>
 		</table>
 	</div>
-
 </body>
 </html>
